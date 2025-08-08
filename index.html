@@ -279,8 +279,13 @@
     <i class="fas fa-hand-paper"></i>
   </div>
   <div class="click-counter" id="click-counter">0</div>
+  <div id="click-label" style="font-size:1.3rem;color:#4285f4;font-weight:bold;margin-top:10px;">Clicks: <span id="click-count-label">0</span></div>
   <div class="progress-bar-bg">
     <div class="progress-bar-fill" id="progressBar"></div>
+  </div>
+  <div id="leaderboard" style="background:#fff8e1;border-radius:12px;box-shadow:0 2px 8px #fbbc0550;padding:1rem 2rem;margin:1.5rem auto 0 auto;max-width:320px;width:90%;text-align:center;">
+    <div style="font-weight:bold;color:#fbbc05;font-size:1.2rem;margin-bottom:0.5rem;">Leaderboard</div>
+    <ol id="leaderboard-list" style="padding-left:1.2em;margin:0;text-align:left;color:#444;font-size:1.1rem;"></ol>
   </div>
   <button class="restart-btn" id="restartBtn">
     <i class="fas fa-redo"></i> Restart
@@ -288,7 +293,7 @@
   <div class="congratulations" id="congratsModal">
     <h1>Congratulations!</h1>
     <img src="https://t4.ftcdn.net/jpg/05/93/91/27/360_F_593912714_6pEIEP3YlFQkbwknHEYxQzbne5ZN6BlE.jpg" alt="Trophy" class="trophy-pulse">
-    <p>You clicked 10 times within 2 seconds!</p>
+    <p id="congrats-message">You clicked 10 times within 2 seconds!</p>
   </div>
   <img src="https://cms-artifacts.artlist.io/content/motion_array/1924221/Celebration_Background_With_Confetti_high_resolution_preview_1924221.jpg?Expires=2037561111516&Key-Pair-Id=K2ZDLYDZI2R1DF&Signature=a8zvOEy2KjMXs~I-8LKkUhU4NuyrHuaVQrqF27MTcW0cYsxiuQjCa0AUk1qMyS7j19Dno2p5Ifspu0rbhjMpyL7ZQr32FnfF4EPVEdUlBVbO80ZP2fBw7TfPq-Os572nUkBmzon4F4HBE5wyBl~ffV9Q~C79Gke7vk6G8Ueo~xdqaSyrZIPFfPO1GCDI7PIZhvbMpfMef2wphg49El63VAryMM1eFXtjJ1~FMZxKRkHUKXbIeRIJe-HN2G8QXfkpb0hcZaCX4PMk2oGQk3SeDzltpG4EGgAqpH~VjZQ6HuRZyReWiX363sotZ-XsaZMSJ3L2UF~hsdBnIhzl4oueIw__" alt="Confetti" class="confetti-float">
   <div style="margin-top:2.5rem;text-align:center;color:#888;font-size:1rem;" class="motivational-fade">
@@ -311,16 +316,30 @@
     // Array to store click timestamps
     let clicks = [];
     let clickCount = 0;
-    // Function to check if 10 clicks happened within 2 seconds
+    let timer = null;
+    // Function to handle click counting within 2 seconds
     function checkClicks() {
-      const now = Date.now();
-      // Remove clicks that are older than 2 seconds
-      clicks = clicks.filter(timestamp => now - timestamp < 2000);
-      // Add current click
-      clicks.push(now);
-      // Update counter
-      clickCount = clicks.length;
-      clickCounter.textContent = clickCount;
+      if (timer === null) {
+        // Start 2-second window
+        clickCount = 1;
+        clickCounter.textContent = clickCount;
+        document.getElementById('click-count-label').textContent = clickCount;
+        progressBar.style.width = Math.min(clickCount * 10, 100) + '%';
+        timer = setTimeout(() => {
+          if (clickCount >= 10) {
+            celebrate(clickCount);
+          } else {
+            // Reset after 2 seconds if not enough clicks
+            resetClicks();
+          }
+          timer = null;
+        }, 2000);
+      } else {
+        clickCount++;
+        clickCounter.textContent = clickCount;
+        document.getElementById('click-count-label').textContent = clickCount;
+        progressBar.style.width = Math.min(clickCount * 10, 100) + '%';
+      }
       // Animate hand
       clapHand.classList.add('clap');
       setTimeout(() => clapHand.classList.remove('clap'), 180);
@@ -329,25 +348,11 @@
       setTimeout(() => {
         clickCounter.style.transform = 'scale(1)';
       }, 100);
-      // Progress bar update
-      progressBar.style.width = Math.min(clickCount * 10, 100) + '%';
       // Glow effect when close to goal
       if (clickCount >= 7 && clickCount < 10) {
         clickCounter.classList.add('glow');
-      } else {
+      } else if (clickCount < 7) {
         clickCounter.classList.remove('glow');
-      }
-      // Check if we have 10 clicks within the 2-second window
-      if (clicks.length >= 10) {
-        celebrate();
-        // Reset clicks array after celebration
-        clicks = [];
-        clickCount = 0;
-        setTimeout(() => {
-          clickCounter.textContent = clickCount;
-          progressBar.style.width = '0%';
-          clickCounter.classList.remove('glow');
-        }, 1000);
       }
     }
     // Function to create and show confetti
@@ -369,19 +374,45 @@
       }
     }
     // Function to celebrate - play sound and show congratulations
-    function celebrate() {
+    function celebrate(finalCount) {
       // Play clapping sound
       clappingSound.currentTime = 0;
       clappingSound.play();
       // Show confetti
       createConfetti();
-      // Show congratulations modal
+      // Show congratulations modal with click count
+      document.getElementById('congrats-message').textContent = `You clicked ${finalCount} times within 2 seconds!`;
+      updateLeaderboard(finalCount);
       congratsModal.classList.add('show-congrats');
       restartBtn.style.display = 'block';
-      // Hide congratulations after a delay
+      // Hide congratulations after a delay and then reset
       setTimeout(() => {
         congratsModal.classList.remove('show-congrats');
+        resetClicks();
       }, 3000);
+    }
+    // Leaderboard logic
+    function updateLeaderboard(score) {
+      let scores = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+      scores.push(score);
+      scores = scores.sort((a,b) => b-a).slice(0,5);
+      localStorage.setItem('leaderboard', JSON.stringify(scores));
+      const list = document.getElementById('leaderboard-list');
+      list.innerHTML = '';
+      scores.forEach((s, i) => {
+        const li = document.createElement('li');
+        li.textContent = `#${i+1}: ${s} clicks`;
+        list.appendChild(li);
+      });
+    }
+    // Initialize leaderboard on load
+    updateLeaderboard(0);
+    function resetClicks() {
+      clickCount = 0;
+      clickCounter.textContent = clickCount;
+      document.getElementById('click-count-label').textContent = clickCount;
+      progressBar.style.width = '0%';
+      clickCounter.classList.remove('glow');
     }
     // Restart button handler
     restartBtn.addEventListener('click', () => {
