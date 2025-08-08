@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Speed Clapper Challenge</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style id="app-style">
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: 'Arial', sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .instructions {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #555;
+      font-size: 1.2rem;
+      opacity: 0.7;
+    }
+    
+    .click-counter {
+      font-size: 8rem;
+      font-weight: bold;
+      color: rgba(0, 0, 0, 0.15);
+      transition: transform 0.1s ease;
+    }
+    
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    
+    .loading-spinner {
+      font-size: 3rem;
+      color: #4285f4;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      color: #555;
+    }
+    
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background-color: #f00;
+      animation: confetti-fall 3s ease-in-out forwards;
+      z-index: 100;
+    }
+    
+    @keyframes confetti-fall {
+      0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+    
+    .congratulations {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      padding: 2rem 4rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    
+    .congratulations h1 {
+      color: #4285f4;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .congratulations p {
+      font-size: 1.2rem;
+      color: #555;
+    }
+    
+    .show-congrats {
+      opacity: 1;
+      animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    @keyframes pop-in {
+      0% { transform: translate(-50%, -50%) scale(0.5); }
+      70% { transform: translate(-50%, -50%) scale(1.1); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+    
+    @media (max-width: 768px) {
+      .instructions {
+        font-size: 1rem;
+        padding: 0 20px;
+      }
+      
+      .click-counter {
+        font-size: 6rem;
+      }
+      
+      .congratulations {
+        padding: 1.5rem 2rem;
+        width: 80%;
+      }
+      
+      .congratulations h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading-overlay" id="loading-overlay">
+    <i class="loading-spinner fas fa-spinner"></i>
+    <p class="loading-text">Loading sound effects...</p>
+  </div>
+  
+  <div class="instructions">
+    Click anywhere on the screen 10 times within 2 seconds!
+  </div>
+  
+  <div class="click-counter" id="click-counter">0</div>
+  
+  <div class="congratulations" id="congratsModal">
+    <h1>Congratulations!</h1>
+    <p>You clicked 10 times within 2 seconds!</p>
+  </div>
+
+  <audio id="clapping-sound" preload="auto">
+    <source src="https://www.soundjay.com/human/sounds/applause-01.mp3" type="audio/mpeg">
+    <!-- Fallback for older browsers -->
+    Your browser does not support the audio element.
+  </audio>
+
+  <script id="app-script">
+    // Audio element
+    const clappingSound = document.getElementById('clapping-sound');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const clickCounter = document.getElementById('click-counter');
+    const congratsModal = document.getElementById('congratsModal');
+    
+    // Array to store click timestamps
+    let clicks = [];
+    let clickCount = 0;
+    
+    // Function to check if 10 clicks happened within 2 seconds
+    function checkClicks() {
+      const now = Date.now();
+      
+      // Remove clicks that are older than 2 seconds
+      clicks = clicks.filter(timestamp => now - timestamp < 2000);
+      
+      // Add current click
+      clicks.push(now);
+      
+      // Update counter
+      clickCount = clicks.length;
+      clickCounter.textContent = clickCount;
+      
+      // Add scale animation to the counter
+      clickCounter.style.transform = 'scale(1.2)';
+      setTimeout(() => {
+        clickCounter.style.transform = 'scale(1)';
+      }, 100);
+      
+      // Check if we have 10 clicks within the 2-second window
+      if (clicks.length >= 10) {
+        celebrate();
+        // Reset clicks array after celebration
+        clicks = [];
+        clickCount = 0;
+        setTimeout(() => {
+          clickCounter.textContent = clickCount;
+        }, 1000);
+      }
+    }
+    
+    // Function to create and show confetti
+    function createConfetti() {
+      for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        
+        // Random confetti properties
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.width = Math.random() * 10 + 5 + 'px';
+        confetti.style.height = confetti.style.width;
+        confetti.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        confetti.style.animationDuration = Math.random() * 2 + 2 + 's';
+        
+        document.body.appendChild(confetti);
+        
+        // Remove confetti after animation
+        setTimeout(() => {
+          confetti.remove();
+        }, 3000);
+      }
+    }
+    
+    // Function to celebrate - play sound and show congratulations
+    function celebrate() {
+      // Play clapping sound
+      clappingSound.currentTime = 0;
+      clappingSound.play();
+      
+      // Show confetti
+      createConfetti();
+      
+      // Show congratulations modal
+      congratsModal.classList.add('show-congrats');
+      
+      // Hide congratulations after a delay
+      setTimeout(() => {
+        congratsModal.classList.remove('show-congrats');
+      }, 3000);
+    }
+    
+    // Audio loaded event
+    clappingSound.addEventListener('canplaythrough', () => {
+      // Hide loading overlay when audio is ready
+      loadingOverlay.style.display = 'none';
+    });
+    
+    // Error handling for audio loading
+    clappingSound.addEventListener('error', () => {
+      loadingOverlay.innerHTML = `
+        <p style="color: #e74c3c;">
+          <i class="fas fa-exclamation-triangle"></i> 
+          Failed to load audio.
+          <br>The app will still work but without sound.
+        </p>
+      `;
+      
+      // Hide loading overlay after showing error
+      setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+      }, 2000);
+    });
+    
+    // Add click event listener to the entire document
+    document.addEventListener('click', checkClicks);
+    
+    // Start loading the audio - this will trigger the 'canplaythrough' event
+    clappingSound.load();
+  </script>
+</body>
+</html>
