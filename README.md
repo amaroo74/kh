@@ -38,7 +38,7 @@ using with live server
 ### Project Documentation
 For Software:The Mouse Tapping Challenge is a simple browser game where players click as fast as possible within a set time. Built with HTML5, CSS3, and JavaScript, it features a timer, real-time score updates, and works on both desktop and mobile. Optional libraries like GSAP and Howler.js add animations and sounds. It runs by opening index.html in a browser or using VS Code’s Live Server
 
-# Screenshots (Add at least 3)
+# Screenshots
 !src="https://github.com/user-attachments/assets/517ad8e9-ad22-457d-9538-a9e62d137cd7" />
 counting starts from zero
 
@@ -58,6 +58,7 @@ Made with ❤️ at TinkerHub Useless Projects
 
 ![Static Badge](https://img.shields.io/badge/TinkerHub-24?color=%23000000&link=https%3A%2F%2Fwww.tinkerhub.org%2F)
 ![Static Badge](https://img.shields.io/badge/UselessProjects--25-25?link=https%3A%2F%2Fwww.tinkerhub.org%2Fevents%2FQ2Q1TQKX6Q%2FUseless%2520Projects)
+
 
 
 
