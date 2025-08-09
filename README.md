@@ -44,7 +44,7 @@ counting starts from zero
 
 
 ### Project Demo
-# <video controls src="Screen Recording 2025-08-09 051004.mp4" title="Title"></video>
+# <video controls src="Screen Recording 2025-08-09 051004.mp4" title="taping challenge"></video>
 [Add your demo video link here]
 in demo shows that how many times a person can tap mouse in 2 second and it records the score so that can encorage other people
 ]
