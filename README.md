@@ -45,7 +45,7 @@ counting starts from zero
 
 ### Project Demo
 #https://github.com/user-attachments/assets/a98a29c9-2ace-4f7f-a84e-e71e129ccf2a
-[Add your demo video link here]
+
 in demo shows that how many times a person can tap mouse in 2 second and it records the score so that can encorage other people
 
 ## Team Contributions
@@ -57,6 +57,7 @@ Made with ❤️ at TinkerHub Useless Projects
 
 ![Static Badge](https://img.shields.io/badge/TinkerHub-24?color=%23000000&link=https%3A%2F%2Fwww.tinkerhub.org%2F)
 ![Static Badge](https://img.shields.io/badge/UselessProjects--25-25?link=https%3A%2F%2Fwww.tinkerhub.org%2Fevents%2FQ2Q1TQKX6Q%2FUseless%2520Projects)
+
 
 
 
